@@ -25,6 +25,9 @@ dev = [
     "coverage",
 ]
 
+[tool.setuptools.packages.find]
+include = ["app*"]
+
 [tool.ruff]
 line-length = 120
 target-version = "py313"
