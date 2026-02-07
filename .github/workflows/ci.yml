@@ -11,8 +11,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  backend:
-    name: Backend
+  backend-lint:
+    name: Backend Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install dependencies
+        run: pip install ".[dev]"
+        working-directory: backend
+
+      - name: Ruff check
+        run: ruff check app/ tests/
+        working-directory: backend
+
+      - name: Ruff format check
+        run: ruff format --check app/ tests/
+        working-directory: backend
+
+      - name: Mypy
+        run: mypy app/ tests/
+        working-directory: backend
+
+  backend-test:
+    name: Backend Test
     runs-on: ubuntu-latest
 
     services:
@@ -45,18 +75,6 @@ jobs:
 
       - name: Install dependencies
         run: pip install ".[dev]"
-        working-directory: backend
-
-      - name: Ruff check
-        run: ruff check app/ tests/
-        working-directory: backend
-
-      - name: Ruff format check
-        run: ruff format --check app/ tests/
-        working-directory: backend
-
-      - name: Mypy
-        run: mypy app/ tests/
         working-directory: backend
 
       - name: Tests
