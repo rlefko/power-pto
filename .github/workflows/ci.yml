@@ -95,6 +95,10 @@ jobs:
         run: pip install ".[dev]"
         working-directory: backend
 
+      - name: Run migrations
+        run: alembic upgrade head
+        working-directory: backend
+
       - name: Tests
         run: pytest tests/ -v --tb=short
         working-directory: backend
