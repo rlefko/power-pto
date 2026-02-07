@@ -39,8 +39,6 @@ make test
 make lint
 ```
 
-> Docker and Make setup is coming in a subsequent PR.
-
 ## Documentation
 
 - [Product Requirements](docs/prd.md)
