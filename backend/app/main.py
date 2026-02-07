@@ -18,9 +18,12 @@ if TYPE_CHECKING:
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Application lifespan manager for startup and shutdown."""
+    from app.db import dispose_engine
+
     settings = get_settings()
     print(f"Starting {settings.app_name} v{settings.app_version} [{settings.environment}]")
     yield
+    await dispose_engine()
     print(f"Shutting down {settings.app_name}")
 
 
