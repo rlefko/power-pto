@@ -1,7 +1,13 @@
-.PHONY: dev down logs api-shell migrate test lint fe
+.PHONY: up build clean down logs api-shell migrate test lint fe
 
-dev:
-	docker compose up --build -d
+up:
+	docker compose up -d
+
+build:
+	docker compose build
+
+clean:
+	docker compose down -v --rmi local
 
 down:
 	docker compose down
@@ -21,6 +27,9 @@ test:
 lint:
 	docker compose exec api ruff check .
 	docker compose exec api ruff format --check .
+	docker compose exec api mypy app/ tests/
+	cd frontend && yarn lint
+	cd frontend && yarn format:check
 
 fe:
 	cd frontend && yarn dev
