@@ -1,4 +1,4 @@
-.PHONY: up up-d build clean down logs api-shell migrate test lint fe
+.PHONY: up up-d build clean down logs api-shell migrate test test-cov lint fe
 
 up:
 	docker compose up
@@ -25,7 +25,11 @@ migrate:
 	docker compose exec api alembic upgrade head
 
 test:
-	docker compose exec api pytest tests/ -v
+	docker compose exec api coverage run -m pytest tests/ -v
+
+test-cov:
+	docker compose exec api coverage run -m pytest tests/ -v
+	docker compose exec api coverage report
 
 lint:
 	docker compose exec api ruff check .
