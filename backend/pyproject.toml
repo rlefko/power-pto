@@ -28,12 +28,14 @@ dev = [
 [tool.ruff]
 line-length = 120
 target-version = "py313"
+extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "TCH", "RUF"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
+known-third-party = ["alembic"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -45,6 +47,10 @@ warn_unused_configs = true
 [[tool.mypy.overrides]]
 module = ["asyncpg.*", "sqlmodel.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["alembic.versions.*"]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
