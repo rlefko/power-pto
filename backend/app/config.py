@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://power_pto:power_pto@db:5432/power_pto"
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:8000"]
 
+    @property
+    def database_url_sync(self) -> str:
+        """Sync database URL for Alembic and other sync tools."""
+        return self.database_url.replace("postgresql+asyncpg://", "postgresql+psycopg://")
+
 
 _settings: Settings | None = None
 
