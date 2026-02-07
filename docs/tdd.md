@@ -23,6 +23,8 @@ DevEx / Ops
 - make commands for common workflows
 - GitHub Actions CI
 - Docs in /docs + Mermaid diagrams in Markdown
+- Pre-commit hooks for local lint/format enforcement
+- Package managers: pip (backend), yarn (frontend)
 
 Engineering philosophy alignment
 
@@ -501,7 +503,7 @@ Makefile targets (minimum)
 - make api-shell → exec into api
 - make migrate → run alembic upgrade head
 - make test → backend tests
-- make lint → ruff/format/typecheck
+- make lint → ruff + mypy (backend), eslint + prettier (frontend)
 - make fe → run frontend dev server (if not in compose)
 
 ---
@@ -528,11 +530,11 @@ CI pipeline (GitHub Actions)
 - backend:
 - install
 - lint (ruff)
-- typecheck (pyright or mypy)
+- typecheck (mypy)
 - run migrations
 - run tests + coverage
 - frontend:
-- typecheck + build (and optionally lint)
+- lint (eslint) + format check (prettier) + typecheck + build
 
 ---
 

@@ -56,7 +56,7 @@ Goals (v1 "complete") 1. Policy CRUD:
 - Fully dockerized
 - make commands run everything
 - Fast refresh (Vite HMR + Uvicorn reload) 8. QA:
-- Strong backend test coverage enforced in CI
+- Strong backend test coverage enforced in CI; linting and type checking enforced via pre-commit hooks and CI
 - FE testing optional/minimal
 
 Non-goals (initially)
@@ -189,7 +189,7 @@ Assumptions:
 - Idempotent processing of payroll events and approvals
 - DX:
 - New dev can run make dev and be productive in <5 minutes
-- CI reliably runs tests, lint, type checks
+- CI reliably runs tests, lint, type checks; pre-commit hooks enforce formatting and linting locally
 - Product:
 - Admin can create policy + assign employees + see balances + approve request end-to-end
 
