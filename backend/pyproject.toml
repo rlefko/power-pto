@@ -1,0 +1,32 @@
+[project]
+name = "power-pto-backend"
+version = "0.1.0"
+description = "Power PTO backend API — employee time-off tracking system"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlmodel",
+    "sqlalchemy[asyncio]",
+    "alembic",
+    "pydantic",
+    "pydantic-settings",
+    "psycopg[binary]",
+    "asyncpg",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+    "ruff",
+    "coverage",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
