@@ -100,8 +100,13 @@ jobs:
         working-directory: backend
 
       - name: Tests
-        run: pytest tests/ -v --tb=short
+        run: coverage run -m pytest tests/ -v --tb=short
         working-directory: backend
+
+      - name: Coverage report
+        run: coverage report
+        working-directory: backend
+        if: always()
 
   frontend-lint:
     name: Frontend Lint
