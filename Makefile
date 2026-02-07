@@ -1,6 +1,9 @@
-.PHONY: up build clean down logs api-shell migrate test lint fe
+.PHONY: up up-d build clean down logs api-shell migrate test lint fe
 
 up:
+	docker compose up
+
+up-d:
 	docker compose up -d
 
 build:
