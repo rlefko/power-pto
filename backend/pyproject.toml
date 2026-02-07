@@ -15,12 +15,13 @@ dependencies = [
     "asyncpg",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "pytest",
     "pytest-asyncio",
     "httpx",
     "ruff",
+    "mypy",
     "coverage",
 ]
 
