@@ -9,7 +9,7 @@ import { ApprovalsPage } from "@/features/requests/pages/approvals-page";
 import { EmployeesPage } from "@/features/employees/pages/employees-page";
 import { EmployeeDetailPage } from "@/features/employees/pages/employee-detail-page";
 import { HolidaysPage } from "@/features/holidays/pages/holidays-page";
-import { AuditLogPage } from "@/pages/placeholder";
+import { AuditLogPage } from "@/features/audit/pages/audit-log-page";
 
 export const router = createBrowserRouter([
   {
