@@ -9,6 +9,8 @@ import { DetailSkeleton } from "@/components/shared/loading-skeleton";
 import { PolicySettingsDisplay } from "../components/policy-settings-display";
 import { PolicyVersionList } from "../components/policy-version-list";
 import { PolicyForm } from "../components/policy-form";
+import { AssignmentList } from "@/features/assignments/components/assignment-list";
+import { AssignEmployeeDialog } from "@/features/assignments/components/assign-employee-dialog";
 import { usePolicy, usePolicyVersions, useUpdatePolicy } from "../hooks/use-policies";
 import { useAuth } from "@/lib/auth/use-auth";
 import type { PolicyCreate, PolicyUpdate } from "@/lib/api/types";
@@ -96,7 +98,10 @@ export function PolicyDetailPage() {
           />
         </TabsContent>
         <TabsContent value="assignments" className="mt-4">
-          <p className="text-sm text-muted-foreground">Assignments will appear here.</p>
+          <div className="space-y-4">
+            {isAdmin && <AssignEmployeeDialog policyId={policyId!} />}
+            <AssignmentList policyId={policyId!} />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
