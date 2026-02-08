@@ -28,9 +28,9 @@ class AuditLog(UUIDBase, table=True):
     action: str = Field(max_length=50)
     before_json: dict[str, Any] | None = Field(default=None, sa_type=sa.JSON)
     after_json: dict[str, Any] | None = Field(default=None, sa_type=sa.JSON)
-    created_at: datetime = Field(  # type: ignore[call-overload]
+    created_at: datetime = Field(
         default_factory=_now_utc,
         index=True,
-        sa_type=sa.DateTime(timezone=True),
+        sa_type=sa.DateTime(timezone=True),  # ty: ignore[invalid-argument-type]
         sa_column_kwargs={"server_default": sa.func.now()},
     )

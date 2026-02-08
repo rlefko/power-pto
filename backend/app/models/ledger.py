@@ -36,12 +36,12 @@ class TimeOffLedgerEntry(UUIDBase, table=True):
     )
     entry_type: str = Field(max_length=50)
     amount_minutes: int
-    effective_at: datetime = Field(sa_type=sa.DateTime(timezone=True))  # type: ignore[call-overload]
+    effective_at: datetime = Field(sa_type=sa.DateTime(timezone=True))  # ty: ignore[invalid-argument-type]
     source_type: str = Field(max_length=50)
     source_id: str = Field(max_length=255)
     metadata_json: dict[str, Any] | None = Field(default=None, sa_type=sa.JSON)
-    created_at: datetime = Field(  # type: ignore[call-overload]
+    created_at: datetime = Field(
         default_factory=_now_utc,
-        sa_type=sa.DateTime(timezone=True),
+        sa_type=sa.DateTime(timezone=True),  # ty: ignore[invalid-argument-type]
         sa_column_kwargs={"server_default": sa.func.now()},
     )

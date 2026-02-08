@@ -172,12 +172,12 @@ def _submit_payload(
     end_hour: int = 17,
     reason: str | None = "Vacation",
     idempotency_key: str | None = None,
-) -> dict:  # type: ignore[type-arg]
+) -> dict:
     """Build a submit request payload. Default is Mon Jan 6 2025, 9am-5pm ET = 480 min."""
     tz = ZoneInfo("America/New_York")
     start = datetime(start_year, start_month, start_day, start_hour, 0, tzinfo=tz)
     end = datetime(end_year, end_month, end_day, end_hour, 0, tzinfo=tz)
-    payload: dict = {  # type: ignore[type-arg]
+    payload: dict = {
         "employee_id": str(employee_id),
         "policy_id": policy_id,
         "start_at": start.isoformat(),

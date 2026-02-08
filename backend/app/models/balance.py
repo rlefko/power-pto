@@ -27,9 +27,9 @@ class TimeOffBalanceSnapshot(SQLModel, table=True):
     used_minutes: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
     held_minutes: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
     available_minutes: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
-    updated_at: datetime = Field(  # type: ignore[call-overload]
+    updated_at: datetime = Field(
         default_factory=_now_utc,
-        sa_type=sa.DateTime(timezone=True),
+        sa_type=sa.DateTime(timezone=True),  # ty: ignore[invalid-argument-type]
         sa_column_kwargs={"server_default": sa.func.now(), "onupdate": sa.func.now()},
     )
     version: int = Field(default=1, sa_column_kwargs={"server_default": "1"})

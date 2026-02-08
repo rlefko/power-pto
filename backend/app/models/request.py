@@ -27,15 +27,15 @@ class TimeOffRequest(UUIDBase, TimestampMixin, table=True):
             sa.Uuid, sa.ForeignKey("time_off_policy.id", ondelete="CASCADE"), nullable=False, index=True
         ),
     )
-    start_at: datetime = Field(sa_type=sa.DateTime(timezone=True))  # type: ignore[call-overload]
-    end_at: datetime = Field(sa_type=sa.DateTime(timezone=True))  # type: ignore[call-overload]
+    start_at: datetime = Field(sa_type=sa.DateTime(timezone=True))  # ty: ignore[invalid-argument-type]
+    end_at: datetime = Field(sa_type=sa.DateTime(timezone=True))  # ty: ignore[invalid-argument-type]
     requested_minutes: int
     reason: str | None = None
     status: str = Field(
         default=RequestStatus.DRAFT, max_length=50, index=True, sa_column_kwargs={"server_default": "DRAFT"}
     )
-    submitted_at: datetime | None = Field(default=None, sa_type=sa.DateTime(timezone=True))  # type: ignore[call-overload]
-    decided_at: datetime | None = Field(default=None, sa_type=sa.DateTime(timezone=True))  # type: ignore[call-overload]
+    submitted_at: datetime | None = Field(default=None, sa_type=sa.DateTime(timezone=True))  # ty: ignore[invalid-argument-type]
+    decided_at: datetime | None = Field(default=None, sa_type=sa.DateTime(timezone=True))  # ty: ignore[invalid-argument-type]
     decided_by: uuid.UUID | None = None
     decision_note: str | None = None
     idempotency_key: str | None = Field(default=None, max_length=255)
