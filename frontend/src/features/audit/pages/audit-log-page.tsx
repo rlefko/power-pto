@@ -7,8 +7,9 @@ import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useAuditLog } from "../hooks/use-audit-log";
+import { useEmployees } from "@/features/employees/hooks/use-employees";
 import type { AuditLogEntry } from "@/lib/api/types";
-import { formatDateTime } from "@/lib/utils/format";
+import { formatDateTime, shortenId } from "@/lib/utils/format";
 import { extractErrorMessage } from "@/lib/api/client";
 import { Eye } from "lucide-react";
 
@@ -27,6 +28,13 @@ export function AuditLogPage() {
   }, [entityType, action]);
 
   const { data, isLoading, isError, error } = useAuditLog(Object.keys(filters).length > 0 ? filters : undefined);
+  const { data: employees } = useEmployees();
+
+  const employeeMap = useMemo(() => {
+    const map = new Map<string, string>();
+    employees?.forEach((e) => map.set(e.id, `${e.first_name} ${e.last_name}`));
+    return map;
+  }, [employees]);
 
   const columns = useMemo<ColumnDef<AuditLogEntry, unknown>[]>(
     () => [
@@ -38,7 +46,10 @@ export function AuditLogPage() {
       {
         accessorKey: "actor_id",
         header: "Actor",
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.actor_id.slice(0, 8)}</span>,
+        cell: ({ row }) =>
+          employeeMap.get(row.original.actor_id) ?? (
+            <span className="font-mono text-xs">{shortenId(row.original.actor_id)}</span>
+          ),
       },
       {
         accessorKey: "entity_type",
@@ -48,7 +59,7 @@ export function AuditLogPage() {
       {
         accessorKey: "entity_id",
         header: "Entity ID",
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.entity_id.slice(0, 8)}</span>,
+        cell: ({ row }) => <span className="font-mono text-xs">{shortenId(row.original.entity_id)}</span>,
       },
       {
         accessorKey: "action",
@@ -61,7 +72,7 @@ export function AuditLogPage() {
         cell: ({ row }) => <AuditDetailDialog entry={row.original} />,
       },
     ],
-    [],
+    [employeeMap],
   );
 
   if (isError) {
