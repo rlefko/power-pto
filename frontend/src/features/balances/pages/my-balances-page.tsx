@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { CardGridSkeleton } from "@/components/shared/loading-skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { BalanceCard } from "../components/balance-card";
+import { BalanceSummaryChart } from "../components/balance-summary-chart";
 import { useEmployeeBalances } from "../hooks/use-balances";
 import { SubmitRequestDialog } from "@/features/requests/components/submit-request-dialog";
 import { useAuth } from "@/lib/auth/use-auth";
@@ -44,11 +45,14 @@ export function MyBalancesPage() {
       ) : !balances || balances.length === 0 ? (
         <EmptyState title="No balances" description="You are not assigned to any time-off policies yet." />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {balances.map((balance) => (
-            <BalanceCard key={balance.policy_id} balance={balance} />
-          ))}
-        </div>
+        <>
+          <BalanceSummaryChart balances={balances} />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {balances.map((balance) => (
+              <BalanceCard key={balance.policy_id} balance={balance} />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

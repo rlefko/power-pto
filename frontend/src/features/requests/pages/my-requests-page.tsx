@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { SubmitRequestDialog } from "../components/submit-request-dialog";
+import { RequestStatusSummary } from "../components/request-status-summary";
 import { useRequests, useCancelRequest } from "../hooks/use-requests";
 import { usePolicies } from "@/features/policies/hooks/use-policies";
 import { useAuth } from "@/lib/auth/use-auth";
@@ -38,6 +39,8 @@ export function MyRequestsPage() {
     return f;
   }, [userId, statusFilter]);
 
+  const allFilters = useMemo(() => ({ employee_id: userId }), [userId]);
+  const { data: allRequestsData } = useRequests(allFilters);
   const { data, isLoading, isError, error } = useRequests(filters);
   const { data: policiesData } = usePolicies();
 
@@ -140,6 +143,10 @@ export function MyRequestsPage() {
           />
         }
       />
+
+      {allRequestsData?.items && allRequestsData.items.length > 0 && (
+        <RequestStatusSummary requests={allRequestsData.items} />
+      )}
 
       <div className="flex items-center gap-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>

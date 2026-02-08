@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { DetailSkeleton } from "@/components/shared/loading-skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { BalanceCard } from "@/features/balances/components/balance-card";
+import { BalanceTimelineChart } from "@/features/balances/components/balance-timeline-chart";
 import { LedgerTable } from "@/features/balances/components/ledger-table";
 import { AssignmentListByEmployee } from "../components/assignment-list-by-employee";
 import { AdjustmentDialog } from "../components/adjustment-dialog";
@@ -123,7 +124,10 @@ export function EmployeeDetailPage() {
               </SelectContent>
             </Select>
             {selectedPolicyId ? (
-              <LedgerTable employeeId={employeeId!} policyId={selectedPolicyId} />
+              <>
+                <BalanceTimelineChart employeeId={employeeId!} policyId={selectedPolicyId} />
+                <LedgerTable employeeId={employeeId!} policyId={selectedPolicyId} />
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">Select a policy to view ledger entries.</p>
             )}

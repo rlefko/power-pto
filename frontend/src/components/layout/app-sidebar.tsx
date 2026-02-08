@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/lib/auth/use-auth";
-import { Calendar, CheckCircle, FileText, PartyPopper, ScrollText, Users, Wallet } from "lucide-react";
+import { Calendar, CheckCircle, FileText, LayoutDashboard, PartyPopper, ScrollText, Users, Wallet } from "lucide-react";
 
 const employeeNavItems = [
   { title: "My Balances", href: "/balances", icon: Wallet },
@@ -19,6 +19,7 @@ const employeeNavItems = [
 ];
 
 const adminNavItems = [
+  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Policies", href: "/policies", icon: FileText },
   { title: "Employees", href: "/employees", icon: Users },
   { title: "Approvals", href: "/approvals", icon: CheckCircle },

@@ -61,6 +61,15 @@ export const ACCRUAL_FREQUENCY_LABELS: Record<AccrualFrequency, string> = {
   YEARLY: "Yearly",
 };
 
+export const POLICY_CATEGORY_CHART_COLORS: Record<PolicyCategory, string> = {
+  VACATION: "var(--chart-1)",
+  SICK: "var(--chart-5)",
+  PERSONAL: "var(--chart-4)",
+  BEREAVEMENT: "var(--muted-foreground)",
+  PARENTAL: "var(--chart-2)",
+  OTHER: "var(--chart-3)",
+};
+
 export const LEDGER_ENTRY_TYPE_LABELS: Record<LedgerEntryType, string> = {
   ACCRUAL: "Accrual",
   HOLD: "Hold",
