@@ -1,9 +1,9 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import { RootLayout } from "@/components/layout/root-layout";
 import { ErrorFallback } from "@/components/shared/error-fallback";
+import { PoliciesPage } from "@/features/policies/pages/policies-page";
+import { PolicyDetailPage } from "@/features/policies/pages/policy-detail-page";
 import {
-  PoliciesPage,
-  PolicyDetailPage,
   EmployeesPage,
   EmployeeDetailPage,
   MyBalancesPage,
