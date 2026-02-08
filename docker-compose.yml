@@ -30,7 +30,7 @@ services:
 
   worker:
     build: ./backend
-    command: ["sh", "-c", "echo 'Worker placeholder — no tasks yet' && sleep infinity"]
+    command: python -m app.worker
     volumes:
       - ./backend:/app
     depends_on:
