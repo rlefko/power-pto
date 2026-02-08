@@ -27,6 +27,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+asyncpg://power_pto:power_pto@db:5432/power_pto
+      RUN_MIGRATIONS: "true"
 
   worker:
     build: ./backend
