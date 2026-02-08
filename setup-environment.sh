@@ -51,6 +51,8 @@ spinner() {
         printf "\r"
     done
     printf "    \r"
+    wait "$pid"
+    return $?
 }
 
 error_exit() {
@@ -111,7 +113,9 @@ install_homebrew() {
 
     log "$YELLOW" "$WARNING_EMOJI" "Homebrew not found. Installing..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &
-    spinner $!
+    if ! spinner $!; then
+        error_exit "Failed to install Homebrew."
+    fi
     echo
 
     # Detect brew installation path and add to PATH
@@ -145,7 +149,9 @@ install_chocolatey() {
     log "$YELLOW" "$WARNING_EMOJI" "Chocolatey not found. Installing..."
     powershell.exe -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command \
         'Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString("https://chocolatey.org/install.ps1"))' &
-    spinner $!
+    if ! spinner $!; then
+        error_exit "Failed to install Chocolatey."
+    fi
     echo
 
     if command -v choco &> /dev/null; then
@@ -175,7 +181,9 @@ install_package() {
 
     log "$BLUE" "$BUILD_EMOJI" "Installing $package..."
     $install_cmd &
-    spinner $!
+    if ! spinner $!; then
+        error_exit "Failed to install $package."
+    fi
     echo
 
     log "$GREEN" "$SUCCESS_EMOJI" "$package installed."
@@ -303,7 +311,9 @@ install_node_and_yarn() {
     else
         log "$YELLOW" "$WARNING_EMOJI" "yarn not found. Installing..."
         npm install -g yarn &
-        spinner $!
+        if ! spinner $!; then
+            error_exit "Failed to install yarn."
+        fi
         echo
         log "$GREEN" "$SUCCESS_EMOJI" "yarn installed."
     fi
@@ -396,9 +406,7 @@ setup_env_file() {
 
 install_frontend_deps() {
     log "$BLUE" "$BUILD_EMOJI" "Installing frontend dependencies..."
-    (cd frontend && yarn install --frozen-lockfile) &
-    spinner $!
-    echo
+    (cd frontend && yarn install --frozen-lockfile --ignore-engines) || error_exit "Failed to install frontend dependencies."
     log "$GREEN" "$SUCCESS_EMOJI" "Frontend dependencies installed."
 }
 
