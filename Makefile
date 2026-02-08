@@ -1,4 +1,4 @@
-.PHONY: up up-d build clean down logs api-shell migrate test test-cov lint fe
+.PHONY: up up-d build clean down logs api-shell migrate test test-cov lint fe seed
 
 up:
 	docker compose up
@@ -40,3 +40,6 @@ lint:
 
 fe:
 	cd frontend && yarn dev
+
+seed:
+	docker compose exec api uv run python -m app.seed
