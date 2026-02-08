@@ -11,7 +11,7 @@ import pytest
 
 from app.exceptions import AppError
 from app.models.holiday import CompanyHoliday
-from app.services.duration import calculate_requested_minutes
+from app.services.duration import calculate_requested_minutes, localize_request_times
 from app.services.employee import EmployeeInfo, InMemoryEmployeeService, set_employee_service
 
 if TYPE_CHECKING:
@@ -316,3 +316,56 @@ async def test_fall_back_day(db_session: AsyncSession) -> None:
 
     result = await calculate_requested_minutes(db_session, COMPANY_ID, EMPLOYEE_ID, start, end)
     assert result == 480
+
+
+# ---------------------------------------------------------------------------
+# Naive datetime handling (frontend datetime-local input)
+# ---------------------------------------------------------------------------
+
+
+async def test_naive_datetime_treated_as_employee_timezone(db_session: AsyncSession) -> None:
+    """Naive datetimes (no tzinfo) are interpreted in the employee's timezone.
+
+    The frontend datetime-local input sends naive strings like "2025-01-06T09:00".
+    These should be treated as 9am in the employee's timezone (America/New_York),
+    not the server's local time or UTC.
+    """
+    # Naive datetime — no tzinfo attached.
+    start = datetime(2025, 1, 6, 9, 0)
+    end = datetime(2025, 1, 6, 17, 0)
+
+    result = await calculate_requested_minutes(db_session, COMPANY_ID, EMPLOYEE_ID, start, end)
+    assert result == 480
+
+
+async def test_naive_datetime_multi_day(db_session: AsyncSession) -> None:
+    """Naive datetimes over multiple days produce the same result as aware ones."""
+    start = datetime(2025, 1, 6, 9, 0)
+    end = datetime(2025, 1, 7, 17, 0)
+
+    result = await calculate_requested_minutes(db_session, COMPANY_ID, EMPLOYEE_ID, start, end)
+    assert result == 960
+
+
+async def test_localize_request_times_naive(db_session: AsyncSession) -> None:
+    """Naive datetimes are localized to the employee's timezone."""
+    start = datetime(2025, 1, 6, 9, 0)
+    end = datetime(2025, 1, 6, 17, 0)
+
+    loc_start, loc_end = await localize_request_times(db_session, COMPANY_ID, EMPLOYEE_ID, start, end)
+
+    assert loc_start.tzinfo == _TZ
+    assert loc_end.tzinfo == _TZ
+    assert loc_start.hour == 9
+    assert loc_end.hour == 17
+
+
+async def test_localize_request_times_aware_unchanged(db_session: AsyncSession) -> None:
+    """Already timezone-aware datetimes are returned unchanged."""
+    start = _dt(2025, 1, 6, 9, 0)
+    end = _dt(2025, 1, 6, 17, 0)
+
+    loc_start, loc_end = await localize_request_times(db_session, COMPANY_ID, EMPLOYEE_ID, start, end)
+
+    assert loc_start == start
+    assert loc_end == end
