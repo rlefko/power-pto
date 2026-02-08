@@ -35,7 +35,7 @@ export function ApprovalsPage() {
       {
         accessorKey: "requested_minutes",
         header: "Duration",
-        cell: ({ row }) => formatDuration(row.original.requested_minutes),
+        cell: ({ row }) => formatDuration(row.original.requested_minutes, "DAYS"),
       },
       {
         accessorKey: "reason",
