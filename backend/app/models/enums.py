@@ -70,6 +70,36 @@ class AuditEntityType(enum.StrEnum):
     ADJUSTMENT = "ADJUSTMENT"
 
 
+class AccrualFrequency(enum.StrEnum):
+    """How often time-based accruals are posted."""
+
+    DAILY = "DAILY"
+    MONTHLY = "MONTHLY"
+    YEARLY = "YEARLY"
+
+
+class AccrualTiming(enum.StrEnum):
+    """When within a period accruals are posted."""
+
+    START_OF_PERIOD = "START_OF_PERIOD"
+    END_OF_PERIOD = "END_OF_PERIOD"
+
+
+class DisplayUnit(enum.StrEnum):
+    """Display unit for policy balances."""
+
+    MINUTES = "MINUTES"
+    HOURS = "HOURS"
+    DAYS = "DAYS"
+
+
+class ProrationMethod(enum.StrEnum):
+    """How partial-period accruals are calculated."""
+
+    DAYS_ACTIVE = "DAYS_ACTIVE"
+    NONE = "NONE"
+
+
 class AuditAction(enum.StrEnum):
     """Action recorded in the audit log."""
 
