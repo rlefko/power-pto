@@ -25,17 +25,40 @@ docs/        — Product requirements, technical design, and architecture
 
 ## Getting Started
 
-**Prerequisites:** Docker, Docker Compose, Make
+### One-Command Setup
+
+The setup script installs all prerequisites (Docker, Node.js, yarn, GitHub CLI, pre-commit), builds the Docker images, runs migrations, and seeds demo data:
 
 ```bash
+make setup
+```
+
+Once complete, the app is running at the URLs below. No other steps needed.
+
+### Manual Setup
+
+If you already have Docker, Docker Compose, Make, and Node.js/yarn installed:
+
+```bash
+# Clone and enter the repo
+git clone https://github.com/rlefko/power-pto.git
+cd power-pto
+
+# Install pre-commit hooks
+pre-commit install
+
+# Install frontend dependencies (needed for linting)
+cd frontend && yarn install && cd ..
+
 # Build and start all services (db, api, frontend)
 make up
 
-# In another terminal, run database migrations (required on first start)
+# In another terminal, run migrations and seed demo data
 make migrate
+make seed
 ```
 
-Once running:
+### Service URLs
 
 | Service | URL |
 |---------|-----|
@@ -50,16 +73,31 @@ To also start the background accrual worker:
 docker compose --profile worker up
 ```
 
+## Seed Data
+
+`make seed` populates the database with demo data for development:
+
+- **4 employees:** Alice Johnson, Bob Smith, Carol Williams, Dave Brown
+- **4 policies:** standard-pto (accrual), unlimited-vacation, sick-leave (accrual), hourly-pto (hours-worked)
+- **6 holidays** for 2026
+- **Policy assignments** linking employees to policies
+- **Balance adjustments** (10-day accrual grants)
+- **A pending time-off request** from Bob Smith (2 days of standard PTO)
+
+The seed script is idempotent and can be re-run after `make clean` to reset data.
+
 ## Make Commands
 
 | Command | Description |
 |---------|-------------|
+| `make setup` | One-command dev environment setup (installs prerequisites, builds, migrates, seeds) |
 | `make up` | Start all services in foreground |
 | `make up-d` | Start all services detached |
 | `make down` | Stop all services |
 | `make build` | Build Docker images |
 | `make clean` | Stop services, remove volumes and local images |
 | `make migrate` | Run Alembic database migrations |
+| `make seed` | Seed the database with demo data |
 | `make test` | Run backend tests |
 | `make test-cov` | Run backend tests with coverage report |
 | `make lint` | Run all linters (ruff, ty, ESLint, Prettier) |

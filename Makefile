@@ -1,4 +1,4 @@
-.PHONY: up up-d build clean down logs api-shell migrate test test-cov lint fe seed
+.PHONY: up up-d build clean down logs api-shell migrate test test-cov lint fe seed setup
 
 up:
 	docker compose up
@@ -43,3 +43,6 @@ fe:
 
 seed:
 	docker compose exec api uv run python -m app.seed
+
+setup:
+	bash setup-environment.sh
