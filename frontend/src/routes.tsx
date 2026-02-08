@@ -6,7 +6,9 @@ import { PolicyDetailPage } from "@/features/policies/pages/policy-detail-page";
 import { MyBalancesPage } from "@/features/balances/pages/my-balances-page";
 import { MyRequestsPage } from "@/features/requests/pages/my-requests-page";
 import { ApprovalsPage } from "@/features/requests/pages/approvals-page";
-import { EmployeesPage, EmployeeDetailPage, HolidaysPage, AuditLogPage } from "@/pages/placeholder";
+import { EmployeesPage } from "@/features/employees/pages/employees-page";
+import { EmployeeDetailPage } from "@/features/employees/pages/employee-detail-page";
+import { HolidaysPage, AuditLogPage } from "@/pages/placeholder";
 
 export const router = createBrowserRouter([
   {
