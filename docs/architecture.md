@@ -347,6 +347,4 @@ The `api` and `worker` services share the same Docker image but run different co
 - [Technical Design](tdd.md) — Detailed technical design and API surface
 - [Data Model](data-model.md) — Database schema, ER diagram, table definitions
 - [API Reference](api.md) — Complete endpoint documentation
-- [ADR-0001: Ledger-First Balances](decisions/adr-0001-ledger-vs-derived.md)
-- [ADR-0002: Immutable Policy Versioning](decisions/adr-0002-policy-versioning.md)
 - [Deployment Plan](deployment.md) — Future AWS deployment target
