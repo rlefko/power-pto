@@ -17,7 +17,7 @@ services:
 
   api:
     build: ./backend
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./backend:/app
     ports:
@@ -30,7 +30,7 @@ services:
 
   worker:
     build: ./backend
-    command: python -m app.worker
+    command: uv run python -m app.worker
     volumes:
       - ./backend:/app
     depends_on:

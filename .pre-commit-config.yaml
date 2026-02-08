@@ -13,9 +13,9 @@ repos:
 
   - repo: local
     hooks:
-      - id: mypy
-        name: mypy
-        entry: docker compose exec -T api mypy app/ tests/
+      - id: ty
+        name: ty check
+        entry: docker compose exec -T api uv run ty check
         language: system
         types: [python]
         files: ^backend/
