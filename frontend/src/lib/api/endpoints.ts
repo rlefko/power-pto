@@ -89,8 +89,8 @@ export const assignmentsApi = {
 export const balancesApi = {
   getByEmployee(companyId: string, employeeId: string) {
     return apiClient
-      .get<EmployeeBalance[]>(`/companies/${companyId}/employees/${employeeId}/balances`)
-      .then((r) => r.data);
+      .get<{ items: EmployeeBalance[]; total: number }>(`/companies/${companyId}/employees/${employeeId}/balances`)
+      .then((r) => r.data.items);
   },
 
   getLedger(companyId: string, employeeId: string, policyId: string, params?: Record<string, unknown>) {
