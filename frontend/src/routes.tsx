@@ -8,7 +8,8 @@ import { MyRequestsPage } from "@/features/requests/pages/my-requests-page";
 import { ApprovalsPage } from "@/features/requests/pages/approvals-page";
 import { EmployeesPage } from "@/features/employees/pages/employees-page";
 import { EmployeeDetailPage } from "@/features/employees/pages/employee-detail-page";
-import { HolidaysPage, AuditLogPage } from "@/pages/placeholder";
+import { HolidaysPage } from "@/features/holidays/pages/holidays-page";
+import { AuditLogPage } from "@/pages/placeholder";
 
 export const router = createBrowserRouter([
   {
