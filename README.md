@@ -43,3 +43,10 @@ make lint
 
 - [Product Requirements](docs/prd.md)
 - [Technical Design](docs/tdd.md)
+- [Architecture](docs/architecture.md)
+- [API Reference](docs/api.md)
+- [Data Model](docs/data-model.md)
+- [Deployment Plan](docs/deployment.md)
+- Architectural Decision Records:
+  - [ADR-0001: Ledger-First Balances](docs/decisions/adr-0001-ledger-vs-derived.md)
+  - [ADR-0002: Immutable Policy Versioning](docs/decisions/adr-0002-policy-versioning.md)
