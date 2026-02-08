@@ -299,7 +299,7 @@ async def run_carryover_processing(
             await session.flush()
 
         except Exception:
-            logger.exception("Carryover failed for employee=%s policy=%s", eid, pid)
+            logger.exception("Carryover failed for an assignment")
             result.errors += 1
 
     await session.commit()
@@ -368,7 +368,7 @@ async def run_expiration_processing(
                     )
 
         except Exception:
-            logger.exception("Expiration failed for employee=%s policy=%s", eid, pid)
+            logger.exception("Expiration failed for an assignment")
             result.errors += 1
 
     await session.commit()
