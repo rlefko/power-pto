@@ -50,3 +50,13 @@ class PayrollProcessingResponse(BaseModel):
     accrued: int
     skipped: int
     errors: int
+
+
+class CarryoverRunResponse(BaseModel):
+    """Response from the carryover/expiration trigger endpoints."""
+
+    target_date: date
+    carryovers_processed: int
+    expirations_processed: int
+    skipped: int
+    errors: int
