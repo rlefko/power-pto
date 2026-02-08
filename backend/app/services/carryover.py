@@ -72,13 +72,18 @@ async def _find_active_accrual_assignments(
 ) -> list[Any]:
     """Find all active accrual assignments with their current policy version.
 
-    Returns Row objects with company_id, employee_id, policy_id, version_id, settings_json.
+    Returns Row objects with company_id, employee_id, policy_id, version_id.
     """
     filters = [
         col(TimeOffPolicyAssignment.effective_from) <= target_date,
         or_(
             col(TimeOffPolicyAssignment.effective_to).is_(None),
             col(TimeOffPolicyAssignment.effective_to) > target_date,
+        ),
+        col(TimeOffPolicyVersion.effective_from) <= target_date,
+        or_(
+            col(TimeOffPolicyVersion.effective_to).is_(None),
+            col(TimeOffPolicyVersion.effective_to) > target_date,
         ),
         col(TimeOffPolicyVersion.type) == PolicyType.ACCRUAL.value,
         col(TimeOffPolicyVersion.accrual_method).in_([AccrualMethod.TIME.value, AccrualMethod.HOURS_WORKED.value]),
@@ -93,14 +98,12 @@ async def _find_active_accrual_assignments(
             TimeOffPolicyAssignment.employee_id,
             TimeOffPolicyAssignment.policy_id,
             col(TimeOffPolicyVersion.id).label("version_id"),
-            col(TimeOffPolicyVersion.settings_json).label("settings_json"),
         )
         .join(
             TimeOffPolicyVersion,
             TimeOffPolicyAssignment.policy_id == TimeOffPolicyVersion.policy_id,
         )
         .where(*filters)
-        .distinct()
     )
     return list(result.all())
 
@@ -183,10 +186,15 @@ async def run_carryover_processing(
 
     for row in assignments:
         cid, eid, pid, vid = row.company_id, row.employee_id, row.policy_id, row.version_id
-        settings_json = row.settings_json
 
         try:
-            settings = _settings_adapter.validate_python(settings_json or {})
+            # Load settings from the version
+            version = await session.get(TimeOffPolicyVersion, vid)
+            if version is None:
+                result.skipped += 1
+                continue
+
+            settings = _settings_adapter.validate_python(version.settings_json or {})
 
             # Only process policies with carryover enabled
             carryover = _get_carryover_settings(settings)
@@ -328,10 +336,15 @@ async def run_expiration_processing(
 
     for row in assignments:
         cid, eid, pid, vid = row.company_id, row.employee_id, row.policy_id, row.version_id
-        settings_json = row.settings_json
 
         try:
-            settings = _settings_adapter.validate_python(settings_json or {})
+            # Load settings from the version
+            version = await session.get(TimeOffPolicyVersion, vid)
+            if version is None:
+                result.skipped += 1
+                continue
+
+            settings = _settings_adapter.validate_python(version.settings_json or {})
 
             # Check calendar-date expiration
             expiration = _get_expiration_settings(settings)
