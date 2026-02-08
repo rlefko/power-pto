@@ -11,10 +11,12 @@ from app.api.deps import AdminDep, validate_company_scope
 from app.db import SessionDep
 from app.schemas.accrual import (
     AccrualRunResponse,
+    CarryoverRunResponse,
     PayrollProcessedPayload,
     PayrollProcessingResponse,
 )
 from app.services.accrual import process_payroll_event, run_time_based_accruals
+from app.services.carryover import run_carryover_processing, run_expiration_processing
 
 # ---------------------------------------------------------------------------
 # Admin trigger: POST /companies/{company_id}/accruals/trigger
@@ -47,6 +49,43 @@ async def trigger_accruals(
         target_date=result.target_date,
         processed=result.processed,
         accrued=result.accrued,
+        skipped=result.skipped,
+        errors=result.errors,
+    )
+
+
+@accrual_trigger_router.post("/carryover", response_model=CarryoverRunResponse)
+async def trigger_carryover(
+    session: SessionDep,
+    auth: AdminDep,
+    target_date: date | None = Query(default=None),
+) -> CarryoverRunResponse:
+    """Manually trigger year-end carryover processing (admin only).
+
+    Only processes on Jan 1 targets. For testing, pass target_date=YYYY-01-01.
+    """
+    result = await run_carryover_processing(session, target_date, company_id=auth.company_id)
+    return CarryoverRunResponse(
+        target_date=result.target_date,
+        carryovers_processed=result.carryovers_processed,
+        expirations_processed=result.expirations_processed,
+        skipped=result.skipped,
+        errors=result.errors,
+    )
+
+
+@accrual_trigger_router.post("/expiration", response_model=CarryoverRunResponse)
+async def trigger_expiration(
+    session: SessionDep,
+    auth: AdminDep,
+    target_date: date | None = Query(default=None),
+) -> CarryoverRunResponse:
+    """Manually trigger balance expiration processing (admin only)."""
+    result = await run_expiration_processing(session, target_date, company_id=auth.company_id)
+    return CarryoverRunResponse(
+        target_date=result.target_date,
+        carryovers_processed=result.carryovers_processed,
+        expirations_processed=result.expirations_processed,
         skipped=result.skipped,
         errors=result.errors,
     )

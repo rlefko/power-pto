@@ -48,7 +48,7 @@ async def _create_accrual_policy(
     bank_cap_minutes: int | None = None,
 ) -> str:
     """Create a time-based accrual policy and return its ID."""
-    settings: dict = {  # type: ignore[type-arg]
+    settings: dict = {
         "type": "ACCRUAL",
         "accrual_method": "TIME",
         "accrual_frequency": "MONTHLY",
@@ -115,7 +115,7 @@ def _adjustment_payload(
     policy_id: str = "",
     amount_minutes: int = 480,
     reason: str = "Test adjustment",
-) -> dict:  # type: ignore[type-arg]
+) -> dict:
     return {
         "employee_id": str(employee_id),
         "policy_id": policy_id,

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 def setup_middleware(app: FastAPI, settings: Settings) -> None:
     """Configure application middleware."""
     app.add_middleware(
-        CORSMiddleware,
+        CORSMiddleware,  # ty: ignore[invalid-argument-type]
         allow_origins=settings.cors_origins,
         allow_credentials=True,
         allow_methods=["*"],

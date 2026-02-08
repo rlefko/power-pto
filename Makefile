@@ -22,19 +22,19 @@ api-shell:
 	docker compose exec api bash
 
 migrate:
-	docker compose exec api alembic upgrade head
+	docker compose exec api uv run alembic upgrade head
 
 test:
-	docker compose exec api coverage run -m pytest tests/ -v
+	docker compose exec api uv run coverage run -m pytest tests/ -v
 
 test-cov:
-	docker compose exec api coverage run -m pytest tests/ -v
-	docker compose exec api coverage report
+	docker compose exec api uv run coverage run -m pytest tests/ -v
+	docker compose exec api uv run coverage report
 
 lint:
-	docker compose exec api ruff check .
-	docker compose exec api ruff format --check .
-	docker compose exec api mypy app/ tests/
+	docker compose exec api uv run ruff check .
+	docker compose exec api uv run ruff format --check .
+	docker compose exec api uv run ty check
 	cd frontend && yarn lint
 	cd frontend && yarn format:check
 

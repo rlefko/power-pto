@@ -24,7 +24,7 @@ AUTH_HEADERS = {
 BASE_URL = f"/companies/{COMPANY_ID}/policies"
 
 
-def _unlimited_payload(key: str = "unlimited-vacation") -> dict:  # type: ignore[type-arg]
+def _unlimited_payload(key: str = "unlimited-vacation") -> dict:
     return {
         "key": key,
         "category": "VACATION",
@@ -35,7 +35,7 @@ def _unlimited_payload(key: str = "unlimited-vacation") -> dict:  # type: ignore
     }
 
 
-def _time_accrual_payload(key: str = "vacation-ft") -> dict:  # type: ignore[type-arg]
+def _time_accrual_payload(key: str = "vacation-ft") -> dict:
     return {
         "key": key,
         "category": "VACATION",
@@ -53,7 +53,7 @@ def _time_accrual_payload(key: str = "vacation-ft") -> dict:  # type: ignore[typ
     }
 
 
-def _hours_worked_payload(key: str = "sick-hourly") -> dict:  # type: ignore[type-arg]
+def _hours_worked_payload(key: str = "sick-hourly") -> dict:
     return {
         "key": key,
         "category": "SICK",

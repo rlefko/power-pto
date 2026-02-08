@@ -18,8 +18,9 @@ ACCRUAL_INTERVAL_SECONDS = 86400  # 24 hours
 
 
 async def run_accrual_loop() -> None:
-    """Main worker loop that runs time-based accruals daily."""
+    """Main worker loop that runs time-based accruals, carryover, and expiration daily."""
     from app.services.accrual import run_time_based_accruals
+    from app.services.carryover import run_carryover_processing, run_expiration_processing
 
     logger.info("Accrual worker started")
     session_factory = get_session_factory()
@@ -40,6 +41,37 @@ async def run_accrual_loop() -> None:
             )
         except Exception:
             logger.exception("Accrual run failed for %s", today)
+
+        # Year-end carryover (only fires on Jan 1)
+        try:
+            async with session_factory() as session:
+                co_result = await run_carryover_processing(session, today)
+            if co_result.carryovers_processed > 0 or co_result.expirations_processed > 0:
+                logger.info(
+                    "Carryover run for %s: carried=%d expired=%d skipped=%d errors=%d",
+                    today,
+                    co_result.carryovers_processed,
+                    co_result.expirations_processed,
+                    co_result.skipped,
+                    co_result.errors,
+                )
+        except Exception:
+            logger.exception("Carryover run failed for %s", today)
+
+        # Balance expiration (calendar-date + post-carryover)
+        try:
+            async with session_factory() as session:
+                exp_result = await run_expiration_processing(session, today)
+            if exp_result.expirations_processed > 0:
+                logger.info(
+                    "Expiration run for %s: expired=%d skipped=%d errors=%d",
+                    today,
+                    exp_result.expirations_processed,
+                    exp_result.skipped,
+                    exp_result.errors,
+                )
+        except Exception:
+            logger.exception("Expiration run failed for %s", today)
 
         await asyncio.sleep(ACCRUAL_INTERVAL_SECONDS)
 

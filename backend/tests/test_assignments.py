@@ -73,8 +73,8 @@ def _assignment_payload(
     employee_id: uuid.UUID = EMPLOYEE_ID,
     effective_from: str = "2025-01-01",
     effective_to: str | None = None,
-) -> dict:  # type: ignore[type-arg]
-    payload: dict = {  # type: ignore[type-arg]
+) -> dict:
+    payload: dict = {
         "employee_id": str(employee_id),
         "effective_from": effective_from,
     }

@@ -312,7 +312,7 @@ def test_create_policy_request_rejects_invalid_category() -> None:
     with pytest.raises(ValidationError):
         CreatePolicyRequest(
             key="test",
-            category="INVALID",
+            category="INVALID",  # ty: ignore[invalid-argument-type]
             version=PolicyVersionInput(
                 effective_from=date(2025, 1, 1),
                 settings=UnlimitedSettings(),

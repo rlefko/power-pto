@@ -57,7 +57,7 @@ def _build_policy_response(
         id=policy.id,
         company_id=policy.company_id,
         key=policy.key,
-        category=policy.category,
+        category=policy.category,  # ty: ignore[invalid-argument-type]
         created_at=policy.created_at,
         current_version=_build_version_response(current_version) if current_version else None,
     )

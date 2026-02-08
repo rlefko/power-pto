@@ -302,7 +302,7 @@ async def _find_active_time_assignments(
         filters.append(col(TimeOffPolicyAssignment.company_id) == company_id)
 
     result = await session.execute(
-        select(  # type: ignore[call-overload]
+        select(  # ty: ignore[no-matching-overload]
             TimeOffPolicyAssignment.company_id,
             TimeOffPolicyAssignment.employee_id,
             TimeOffPolicyAssignment.policy_id,
@@ -340,7 +340,7 @@ async def _find_hours_worked_assignments(
 ) -> list[_AssignmentInfo]:
     """Find active HOURS_WORKED assignments for one employee."""
     result = await session.execute(
-        select(  # type: ignore[call-overload]
+        select(  # ty: ignore[no-matching-overload]
             TimeOffPolicyAssignment.company_id,
             TimeOffPolicyAssignment.employee_id,
             TimeOffPolicyAssignment.policy_id,
