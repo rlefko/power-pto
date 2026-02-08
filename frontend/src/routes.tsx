@@ -3,15 +3,10 @@ import { RootLayout } from "@/components/layout/root-layout";
 import { ErrorFallback } from "@/components/shared/error-fallback";
 import { PoliciesPage } from "@/features/policies/pages/policies-page";
 import { PolicyDetailPage } from "@/features/policies/pages/policy-detail-page";
-import {
-  EmployeesPage,
-  EmployeeDetailPage,
-  MyBalancesPage,
-  MyRequestsPage,
-  ApprovalsPage,
-  HolidaysPage,
-  AuditLogPage,
-} from "@/pages/placeholder";
+import { MyBalancesPage } from "@/features/balances/pages/my-balances-page";
+import { MyRequestsPage } from "@/features/requests/pages/my-requests-page";
+import { ApprovalsPage } from "@/features/requests/pages/approvals-page";
+import { EmployeesPage, EmployeeDetailPage, HolidaysPage, AuditLogPage } from "@/pages/placeholder";
 
 export const router = createBrowserRouter([
   {

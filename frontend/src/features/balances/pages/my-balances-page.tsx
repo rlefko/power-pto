@@ -4,18 +4,14 @@ import { CardGridSkeleton } from "@/components/shared/loading-skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { BalanceCard } from "../components/balance-card";
 import { useEmployeeBalances } from "../hooks/use-balances";
+import { SubmitRequestDialog } from "@/features/requests/components/submit-request-dialog";
 import { useAuth } from "@/lib/auth/use-auth";
 import { extractErrorMessage } from "@/lib/api/client";
-import { toast } from "sonner";
 import { CalendarPlus } from "lucide-react";
 
 export function MyBalancesPage() {
   const { userId } = useAuth();
   const { data: balances, isLoading, isError, error } = useEmployeeBalances(userId);
-
-  const handleRequestTimeOff = () => {
-    toast.info("Request time off flow coming soon");
-  };
 
   if (isError) {
     return (
@@ -32,10 +28,14 @@ export function MyBalancesPage() {
         title="My Balances"
         subtitle="Your current time-off balances"
         actions={
-          <Button size="sm" onClick={handleRequestTimeOff}>
-            <CalendarPlus className="mr-1 h-4 w-4" />
-            Request Time Off
-          </Button>
+          <SubmitRequestDialog
+            trigger={
+              <Button size="sm">
+                <CalendarPlus className="mr-1 h-4 w-4" />
+                Request Time Off
+              </Button>
+            }
+          />
         }
       />
 
