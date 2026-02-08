@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import date
 from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel
@@ -18,6 +19,7 @@ class EmployeeInfo(BaseModel):
     pay_type: str  # "SALARY" or "HOURLY"
     workday_minutes: int  # e.g. 480 for 8-hour day
     timezone: str  # e.g. "America/New_York"
+    hire_date: date | None = None  # for tenure tier lookups
 
 
 @runtime_checkable

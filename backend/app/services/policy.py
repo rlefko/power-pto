@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import uuid
+from datetime import date
 from typing import TYPE_CHECKING
 
 from pydantic import TypeAdapter
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlmodel import col
 
 from app.exceptions import AppError
@@ -296,6 +297,32 @@ async def list_policy_versions(
         items=[_build_version_response(v) for v in versions],
         total=total,
     )
+
+
+async def get_version_effective_on(
+    session: AsyncSession,
+    policy_id: uuid.UUID,
+    target_date: date,
+) -> TimeOffPolicyVersion | None:
+    """Get the policy version effective on a specific date.
+
+    Uses half-open interval: effective_from <= target_date
+    AND (effective_to IS NULL OR effective_to > target_date).
+    """
+    result = await session.execute(
+        select(TimeOffPolicyVersion)
+        .where(
+            col(TimeOffPolicyVersion.policy_id) == policy_id,
+            col(TimeOffPolicyVersion.effective_from) <= target_date,
+            or_(
+                col(TimeOffPolicyVersion.effective_to).is_(None),
+                col(TimeOffPolicyVersion.effective_to) > target_date,
+            ),
+        )
+        .order_by(col(TimeOffPolicyVersion.version).desc())
+        .limit(1)
+    )
+    return result.scalar_one_or_none()
 
 
 async def _get_current_version(

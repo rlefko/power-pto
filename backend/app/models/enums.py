@@ -68,6 +68,7 @@ class AuditEntityType(enum.StrEnum):
     ASSIGNMENT = "ASSIGNMENT"
     HOLIDAY = "HOLIDAY"
     ADJUSTMENT = "ADJUSTMENT"
+    ACCRUAL = "ACCRUAL"
 
 
 class AccrualFrequency(enum.StrEnum):
