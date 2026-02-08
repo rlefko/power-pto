@@ -29,4 +29,7 @@ export const queryKeys = {
   auditLog: {
     all: (companyId: string, filters?: Record<string, unknown>) => ["audit-log", companyId, filters] as const,
   },
+  reports: {
+    balances: (companyId: string) => ["reports", "balances", companyId] as const,
+  },
 };
