@@ -5,8 +5,14 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+from sqlmodel import col
+
+from app.models.audit import AuditLog
+
 if TYPE_CHECKING:
     from httpx import AsyncClient
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 COMPANY_ID = uuid.uuid4()
 USER_ID = uuid.uuid4()
@@ -459,3 +465,119 @@ async def test_employee_can_get(async_client: AsyncClient) -> None:
     }
     resp = await async_client.get(f"{BASE_URL}/{policy_id}", headers=employee_headers)
     assert resp.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Audit tests
+# ---------------------------------------------------------------------------
+
+
+async def test_create_policy_writes_audit_entries(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    resp = await async_client.post(BASE_URL, json=_unlimited_payload(), headers=AUTH_HEADERS)
+    assert resp.status_code == 201
+    policy_id = resp.json()["id"]
+
+    result = await db_session.execute(
+        select(AuditLog).where(col(AuditLog.company_id) == COMPANY_ID).order_by(col(AuditLog.created_at))
+    )
+    entries = list(result.scalars().all())
+
+    # Should have at least 2 entries: POLICY CREATE + POLICY_VERSION CREATE
+    policy_creates = [e for e in entries if e.entity_type == "POLICY" and e.action == "CREATE"]
+    version_creates = [
+        e for e in entries if e.entity_type == "POLICY_VERSION" and e.action == "CREATE" and e.after_json is not None
+    ]
+
+    assert len(policy_creates) >= 1
+    assert len(version_creates) >= 1
+
+    # Verify the policy create entry
+    pc = next(e for e in policy_creates if str(e.entity_id) == policy_id)
+    assert str(pc.actor_id) == str(USER_ID)
+    assert pc.before_json is None
+    assert pc.after_json is not None
+    assert pc.after_json["key"] == "unlimited-vacation"
+
+
+async def test_update_policy_writes_audit_entries(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    create_resp = await async_client.post(BASE_URL, json=_unlimited_payload(), headers=AUTH_HEADERS)
+    policy_id = create_resp.json()["id"]
+
+    update_payload = {
+        "version": {
+            "effective_from": "2025-07-01",
+            "settings": {"type": "UNLIMITED"},
+            "change_reason": "Updating for audit test",
+        },
+    }
+    await async_client.put(f"{BASE_URL}/{policy_id}", json=update_payload, headers=AUTH_HEADERS)
+
+    result = await db_session.execute(
+        select(AuditLog).where(col(AuditLog.company_id) == COMPANY_ID).order_by(col(AuditLog.created_at))
+    )
+    entries = list(result.scalars().all())
+
+    # Find update entries for the version that was end-dated
+    version_updates = [e for e in entries if e.entity_type == "POLICY_VERSION" and e.action == "UPDATE"]
+    assert len(version_updates) >= 1
+
+    vu = version_updates[-1]
+    assert vu.before_json is not None
+    assert vu.after_json is not None
+    assert vu.before_json["effective_to"] is None
+    assert vu.after_json["effective_to"] == "2025-07-01"
+
+    # Find create entry for the new version
+    new_version_creates = [
+        e for e in entries if e.entity_type == "POLICY_VERSION" and e.action == "CREATE" and e.after_json is not None
+    ]
+    # At least 2: initial v1 + new v2
+    assert len(new_version_creates) >= 2
+    latest = new_version_creates[-1]
+    assert latest.after_json is not None
+    assert latest.after_json["version"] == 2
+
+
+async def test_audit_actor_matches_auth_user(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    custom_user = uuid.uuid4()
+    custom_headers = {
+        "X-Company-Id": str(COMPANY_ID),
+        "X-User-Id": str(custom_user),
+        "X-Role": "admin",
+    }
+    resp = await async_client.post(BASE_URL, json=_unlimited_payload(key="audit-actor-test"), headers=custom_headers)
+    assert resp.status_code == 201
+
+    result = await db_session.execute(
+        select(AuditLog).where(
+            col(AuditLog.company_id) == COMPANY_ID,
+            col(AuditLog.actor_id) == custom_user,
+        )
+    )
+    entries = list(result.scalars().all())
+    assert len(entries) >= 1
+    for entry in entries:
+        assert entry.actor_id == custom_user
+
+
+async def test_audit_company_id_matches_policy(
+    async_client: AsyncClient,
+    db_session: AsyncSession,
+) -> None:
+    resp = await async_client.post(BASE_URL, json=_unlimited_payload(key="audit-company-test"), headers=AUTH_HEADERS)
+    assert resp.status_code == 201
+
+    result = await db_session.execute(select(AuditLog).where(col(AuditLog.company_id) == COMPANY_ID))
+    entries = list(result.scalars().all())
+    assert len(entries) >= 1
+    for entry in entries:
+        assert entry.company_id == COMPANY_ID

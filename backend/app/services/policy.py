@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlmodel import col
 
 from app.exceptions import AppError
-from app.models.enums import AccrualMethod, PolicyType
+from app.models.enums import AccrualMethod, AuditAction, AuditEntityType, PolicyType
 from app.models.policy import TimeOffPolicy, TimeOffPolicyVersion
 from app.schemas.policy import (
     PolicyListResponse,
@@ -18,6 +18,7 @@ from app.schemas.policy import (
     PolicyVersionListResponse,
     PolicyVersionResponse,
 )
+from app.services.audit import model_to_audit_dict, write_audit_log
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -100,6 +101,27 @@ async def create_policy(
     )
     session.add(version)
     await session.flush()
+
+    # Audit: policy created
+    await write_audit_log(
+        session,
+        company_id=auth.company_id,
+        actor_id=auth.user_id,
+        entity_type=AuditEntityType.POLICY,
+        entity_id=policy.id,
+        action=AuditAction.CREATE,
+        after_json=model_to_audit_dict(policy),
+    )
+    # Audit: policy version created
+    await write_audit_log(
+        session,
+        company_id=auth.company_id,
+        actor_id=auth.user_id,
+        entity_type=AuditEntityType.POLICY_VERSION,
+        entity_id=version.id,
+        action=AuditAction.CREATE,
+        after_json=model_to_audit_dict(version),
+    )
 
     await session.commit()
     await session.refresh(policy)
@@ -184,6 +206,9 @@ async def update_policy(
             status_code=400,
         )
 
+    # Capture state before end-dating for audit
+    before_version_dict = model_to_audit_dict(current_version)
+
     # End-date current version
     current_version.effective_to = payload.version.effective_from
 
@@ -205,6 +230,28 @@ async def update_policy(
     )
     session.add(new_version)
     await session.flush()
+
+    # Audit: previous version end-dated
+    await write_audit_log(
+        session,
+        company_id=auth.company_id,
+        actor_id=auth.user_id,
+        entity_type=AuditEntityType.POLICY_VERSION,
+        entity_id=current_version.id,
+        action=AuditAction.UPDATE,
+        before_json=before_version_dict,
+        after_json=model_to_audit_dict(current_version),
+    )
+    # Audit: new version created
+    await write_audit_log(
+        session,
+        company_id=auth.company_id,
+        actor_id=auth.user_id,
+        entity_type=AuditEntityType.POLICY_VERSION,
+        entity_id=new_version.id,
+        action=AuditAction.CREATE,
+        after_json=model_to_audit_dict(new_version),
+    )
 
     await session.commit()
     await session.refresh(policy)
