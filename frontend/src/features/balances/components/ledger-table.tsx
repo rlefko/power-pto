@@ -5,7 +5,7 @@ import { DataTable } from "@/components/shared/data-table";
 import { DurationDisplay } from "@/components/shared/duration-display";
 import { useEmployeeLedger } from "../hooks/use-balances";
 import type { LedgerEntry } from "@/lib/api/types";
-import { formatDateTime } from "@/lib/utils/format";
+import { formatDateTime, shortenId } from "@/lib/utils/format";
 import { LEDGER_ENTRY_TYPE_LABELS } from "@/lib/utils/constants";
 
 interface LedgerTableProps {
@@ -54,7 +54,7 @@ export function LedgerTable({ employeeId, policyId }: LedgerTableProps) {
       {
         accessorKey: "source_id",
         header: "Source ID",
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.source_id.slice(0, 8)}</span>,
+        cell: ({ row }) => <span className="font-mono text-xs">{shortenId(row.original.source_id)}</span>,
       },
       {
         accessorKey: "created_at",

@@ -41,6 +41,7 @@ export function useApproveRequest() {
       requestsApi.approve(companyId, requestId, note ? { note } : undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["requests", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["balances", companyId] });
     },
   });
 }
@@ -53,6 +54,7 @@ export function useDenyRequest() {
       requestsApi.deny(companyId, requestId, note ? { note } : undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["requests", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["balances", companyId] });
     },
   });
 }

@@ -1,11 +1,13 @@
+import { useMemo } from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/shared/data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import type { PolicyAssignment } from "@/lib/api/types";
-import { formatDate } from "@/lib/utils/format";
+import { formatDate, shortenId } from "@/lib/utils/format";
 import { useAuth } from "@/lib/auth/use-auth";
+import { usePolicies } from "@/features/policies/hooks/use-policies";
 import { useAssignmentsByEmployee, useEndDateAssignment } from "@/features/assignments/hooks/use-assignments";
 import { toast } from "sonner";
 import { extractErrorMessage } from "@/lib/api/client";
@@ -19,7 +21,14 @@ export function AssignmentListByEmployee({ employeeId }: AssignmentListByEmploye
   const { role } = useAuth();
   const isAdmin = role === "admin";
   const { data, isLoading } = useAssignmentsByEmployee(employeeId);
+  const { data: policiesData } = usePolicies();
   const endDateMutation = useEndDateAssignment();
+
+  const policyMap = useMemo(() => {
+    const map = new Map<string, string>();
+    policiesData?.items.forEach((p) => map.set(p.id, p.key));
+    return map;
+  }, [policiesData]);
 
   const handleEndDate = (assignmentId: string) => {
     endDateMutation.mutate(
@@ -34,8 +43,8 @@ export function AssignmentListByEmployee({ employeeId }: AssignmentListByEmploye
   const columns: ColumnDef<PolicyAssignment, unknown>[] = [
     {
       accessorKey: "policy_id",
-      header: "Policy ID",
-      cell: ({ row }) => <span className="font-mono text-xs">{row.original.policy_id}</span>,
+      header: "Policy",
+      cell: ({ row }) => policyMap.get(row.original.policy_id) ?? shortenId(row.original.policy_id),
     },
     {
       accessorKey: "effective_from",

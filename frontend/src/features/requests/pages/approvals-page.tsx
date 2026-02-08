@@ -6,26 +6,42 @@ import { DataTable } from "@/components/shared/data-table";
 import { EmptyState } from "@/components/shared/empty-state";
 import { DecisionDialog } from "../components/decision-dialog";
 import { useRequests } from "../hooks/use-requests";
+import { useEmployees } from "@/features/employees/hooks/use-employees";
+import { usePolicies } from "@/features/policies/hooks/use-policies";
 import type { TimeOffRequest } from "@/lib/api/types";
-import { formatDateRange, formatDuration } from "@/lib/utils/format";
+import { formatDateRange, formatDuration, shortenId } from "@/lib/utils/format";
 import { extractErrorMessage } from "@/lib/api/client";
 import { Check, X } from "lucide-react";
 
 export function ApprovalsPage() {
   const filters = useMemo(() => ({ status: "SUBMITTED" }), []);
   const { data, isLoading, isError, error } = useRequests(filters);
+  const { data: employees } = useEmployees();
+  const { data: policiesData } = usePolicies();
+
+  const employeeMap = useMemo(() => {
+    const map = new Map<string, string>();
+    employees?.forEach((e) => map.set(e.id, `${e.first_name} ${e.last_name}`));
+    return map;
+  }, [employees]);
+
+  const policyMap = useMemo(() => {
+    const map = new Map<string, string>();
+    policiesData?.items.forEach((p) => map.set(p.id, p.key));
+    return map;
+  }, [policiesData]);
 
   const columns = useMemo<ColumnDef<TimeOffRequest, unknown>[]>(
     () => [
       {
         accessorKey: "employee_id",
         header: "Employee",
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.employee_id.slice(0, 8)}</span>,
+        cell: ({ row }) => employeeMap.get(row.original.employee_id) ?? shortenId(row.original.employee_id),
       },
       {
         accessorKey: "policy_id",
         header: "Policy",
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.policy_id.slice(0, 8)}</span>,
+        cell: ({ row }) => policyMap.get(row.original.policy_id) ?? shortenId(row.original.policy_id),
       },
       {
         id: "date_range",
@@ -35,7 +51,7 @@ export function ApprovalsPage() {
       {
         accessorKey: "requested_minutes",
         header: "Duration",
-        cell: ({ row }) => formatDuration(row.original.requested_minutes),
+        cell: ({ row }) => formatDuration(row.original.requested_minutes, "DAYS"),
       },
       {
         accessorKey: "reason",
@@ -75,7 +91,7 @@ export function ApprovalsPage() {
         ),
       },
     ],
-    [],
+    [employeeMap, policyMap],
   );
 
   if (isError) {

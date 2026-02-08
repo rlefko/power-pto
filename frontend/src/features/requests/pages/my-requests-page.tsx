@@ -9,9 +9,10 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { SubmitRequestDialog } from "../components/submit-request-dialog";
 import { useRequests, useCancelRequest } from "../hooks/use-requests";
+import { usePolicies } from "@/features/policies/hooks/use-policies";
 import { useAuth } from "@/lib/auth/use-auth";
 import type { RequestStatus, TimeOffRequest } from "@/lib/api/types";
-import { formatDateRange, formatDuration } from "@/lib/utils/format";
+import { formatDateRange, formatDuration, shortenId } from "@/lib/utils/format";
 import { toast } from "sonner";
 import { extractErrorMessage } from "@/lib/api/client";
 import { Plus, X } from "lucide-react";
@@ -38,6 +39,13 @@ export function MyRequestsPage() {
   }, [userId, statusFilter]);
 
   const { data, isLoading, isError, error } = useRequests(filters);
+  const { data: policiesData } = usePolicies();
+
+  const policyMap = useMemo(() => {
+    const map = new Map<string, string>();
+    policiesData?.items.forEach((p) => map.set(p.id, p.key));
+    return map;
+  }, [policiesData]);
 
   const handleCancel = useCallback(
     (requestId: string) => {
@@ -59,7 +67,7 @@ export function MyRequestsPage() {
       {
         accessorKey: "policy_id",
         header: "Policy",
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.policy_id.slice(0, 8)}</span>,
+        cell: ({ row }) => policyMap.get(row.original.policy_id) ?? shortenId(row.original.policy_id),
       },
       {
         id: "date_range",
@@ -69,7 +77,7 @@ export function MyRequestsPage() {
       {
         accessorKey: "requested_minutes",
         header: "Duration",
-        cell: ({ row }) => formatDuration(row.original.requested_minutes),
+        cell: ({ row }) => formatDuration(row.original.requested_minutes, "DAYS"),
       },
       {
         accessorKey: "reason",
@@ -104,7 +112,7 @@ export function MyRequestsPage() {
         },
       },
     ],
-    [handleCancel, cancelRequest.isPending],
+    [handleCancel, cancelRequest.isPending, policyMap],
   );
 
   if (isError) {

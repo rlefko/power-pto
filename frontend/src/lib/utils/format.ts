@@ -36,6 +36,10 @@ export function formatDuration(
   }
 }
 
+export function shortenId(uuid: string): string {
+  return uuid.replace(/-/g, "").slice(-8);
+}
+
 export function formatDate(isoString: string): string {
   return format(parseISO(isoString), "MMM d, yyyy");
 }

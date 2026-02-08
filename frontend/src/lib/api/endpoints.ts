@@ -38,7 +38,7 @@ export const policiesApi = {
   },
 
   update(companyId: string, policyId: string, data: PolicyUpdate) {
-    return apiClient.patch<Policy>(`/companies/${companyId}/policies/${policyId}`, data).then((r) => r.data);
+    return apiClient.put<Policy>(`/companies/${companyId}/policies/${policyId}`, data).then((r) => r.data);
   },
 
   listVersions(companyId: string, policyId: string, params?: Record<string, unknown>) {
@@ -154,7 +154,9 @@ export const requestsApi = {
 
 export const employeesApi = {
   list(companyId: string) {
-    return apiClient.get<Employee[]>(`/companies/${companyId}/employees`).then((r) => r.data);
+    return apiClient
+      .get<{ items: Employee[]; total: number }>(`/companies/${companyId}/employees`)
+      .then((r) => r.data.items);
   },
 
   get(companyId: string, employeeId: string) {
@@ -198,10 +200,14 @@ export const reportsApi = {
   },
 
   balanceSummary(companyId: string) {
-    return apiClient.get<BalanceSummary[]>(`/companies/${companyId}/reports/balances`).then((r) => r.data);
+    return apiClient
+      .get<{ items: BalanceSummary[]; total: number }>(`/companies/${companyId}/reports/balances`)
+      .then((r) => r.data.items);
   },
 
   ledgerExport(companyId: string, params?: Record<string, unknown>) {
-    return apiClient.get<LedgerEntry[]>(`/companies/${companyId}/reports/ledger`, { params }).then((r) => r.data);
+    return apiClient
+      .get<{ items: LedgerEntry[]; total: number }>(`/companies/${companyId}/reports/ledger`, { params })
+      .then((r) => r.data.items);
   },
 };
