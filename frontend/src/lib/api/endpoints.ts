@@ -38,7 +38,7 @@ export const policiesApi = {
   },
 
   update(companyId: string, policyId: string, data: PolicyUpdate) {
-    return apiClient.patch<Policy>(`/companies/${companyId}/policies/${policyId}`, data).then((r) => r.data);
+    return apiClient.put<Policy>(`/companies/${companyId}/policies/${policyId}`, data).then((r) => r.data);
   },
 
   listVersions(companyId: string, policyId: string, params?: Record<string, unknown>) {
