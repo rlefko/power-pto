@@ -555,11 +555,7 @@ async def run_time_based_accruals(
                 result.skipped += 1
 
         except Exception:
-            logger.exception(
-                "Error processing time accrual for employee=%s policy=%s",
-                info.employee_id,
-                info.policy_id,
-            )
+            logger.exception("Error processing time accrual for assignment=%s", info.assignment_id)
             result.errors += 1
 
     await session.commit()
@@ -652,9 +648,8 @@ async def process_payroll_event(
 
             except Exception:
                 logger.exception(
-                    "Error processing payroll accrual for employee=%s policy=%s run=%s",
-                    employee_entry.employee_id,
-                    info.policy_id,
+                    "Error processing payroll accrual for assignment=%s run=%s",
+                    info.assignment_id,
                     payload.payroll_run_id,
                 )
                 result.errors += 1
