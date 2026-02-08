@@ -25,7 +25,7 @@ from app.schemas.request import RequestListResponse, RequestResponse
 from app.services.assignment import verify_active_assignment
 from app.services.audit import model_to_audit_dict, write_audit_log
 from app.services.balance import _get_or_create_snapshot_for_update
-from app.services.duration import calculate_requested_minutes
+from app.services.duration import calculate_requested_minutes, localize_request_times
 from app.services.policy import _get_current_version
 
 if TYPE_CHECKING:
@@ -216,6 +216,13 @@ async def submit_request(
     """
     today = date.today()
 
+    # 0. Localize naive datetimes to the employee's timezone.
+    #    The frontend sends naive strings from datetime-local inputs; they
+    #    represent the employee's local schedule, not the submitter's browser TZ.
+    start_at, end_at = await localize_request_times(
+        session, auth.company_id, payload.employee_id, payload.start_at, payload.end_at
+    )
+
     # 1. Verify active assignment.
     await verify_active_assignment(session, auth.company_id, payload.employee_id, payload.policy_id, today)
 
@@ -226,13 +233,11 @@ async def submit_request(
 
     # 3. Calculate duration.
     requested_minutes = await calculate_requested_minutes(
-        session, auth.company_id, payload.employee_id, payload.start_at, payload.end_at
+        session, auth.company_id, payload.employee_id, start_at, end_at
     )
 
     # 4. Check for overlapping requests.
-    await _check_request_overlap(
-        session, auth.company_id, payload.employee_id, payload.policy_id, payload.start_at, payload.end_at
-    )
+    await _check_request_overlap(session, auth.company_id, payload.employee_id, payload.policy_id, start_at, end_at)
 
     # 5. Parse policy settings.
     settings = _settings_adapter.validate_python(current_version.settings_json or {})
@@ -263,8 +268,8 @@ async def submit_request(
         company_id=auth.company_id,
         employee_id=payload.employee_id,
         policy_id=payload.policy_id,
-        start_at=payload.start_at,
-        end_at=payload.end_at,
+        start_at=start_at,
+        end_at=end_at,
         requested_minutes=requested_minutes,
         reason=payload.reason,
         status=RequestStatus.SUBMITTED.value,

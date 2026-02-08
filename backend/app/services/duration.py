@@ -67,6 +67,36 @@ def _compute_day_minutes(
     return int((overlap_end - overlap_start).total_seconds()) // 60
 
 
+async def localize_request_times(
+    session: AsyncSession,
+    company_id: uuid.UUID,
+    employee_id: uuid.UUID,
+    start_at: datetime,
+    end_at: datetime,
+) -> tuple[datetime, datetime]:
+    """Ensure request datetimes are timezone-aware in the employee's timezone.
+
+    Naive datetimes (from the frontend ``datetime-local`` input) are treated as
+    local times in the employee's configured timezone.  Already timezone-aware
+    datetimes are returned unchanged for backward compatibility with API callers
+    and the seed script.
+    """
+    if start_at.tzinfo is not None and end_at.tzinfo is not None:
+        return start_at, end_at
+
+    employee_service = get_employee_service()
+    employee = await employee_service.get_employee(company_id, employee_id)
+    tz_name = employee.timezone if employee else _DEFAULT_TIMEZONE
+    tz = ZoneInfo(tz_name)
+
+    if start_at.tzinfo is None:
+        start_at = start_at.replace(tzinfo=tz)
+    if end_at.tzinfo is None:
+        end_at = end_at.replace(tzinfo=tz)
+
+    return start_at, end_at
+
+
 async def calculate_requested_minutes(
     session: AsyncSession,
     company_id: uuid.UUID,
@@ -92,8 +122,11 @@ async def calculate_requested_minutes(
     tz = ZoneInfo(tz_name)
 
     # 2. Convert to employee timezone.
-    local_start = start_at.astimezone(tz)
-    local_end = end_at.astimezone(tz)
+    # Naive datetimes (from the frontend datetime-local input) are treated as
+    # local times in the employee's timezone.  Aware datetimes are converted
+    # normally (backward-compatible with API callers that supply a timezone).
+    local_start = start_at.replace(tzinfo=tz) if start_at.tzinfo is None else start_at.astimezone(tz)
+    local_end = end_at.replace(tzinfo=tz) if end_at.tzinfo is None else end_at.astimezone(tz)
 
     # 3. Fetch holidays in range.
     start_date = local_start.date()

@@ -37,8 +37,8 @@ export function RequestForm({ onSubmit, isPending }: RequestFormProps) {
     onSubmit({
       employee_id: userId,
       policy_id: values.policy_id,
-      start_at: new Date(values.start_at).toISOString(),
-      end_at: new Date(values.end_at).toISOString(),
+      start_at: values.start_at,
+      end_at: values.end_at,
       reason: values.reason || null,
     });
   });
