@@ -1,9 +1,8 @@
+import { RouterProvider } from "react-router";
+import { router } from "./routes";
+
 function App() {
-  return (
-    <div>
-      <h1>Power PTO</h1>
-    </div>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;
