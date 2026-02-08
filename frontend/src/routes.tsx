@@ -10,6 +10,7 @@ import { EmployeesPage } from "@/features/employees/pages/employees-page";
 import { EmployeeDetailPage } from "@/features/employees/pages/employee-detail-page";
 import { HolidaysPage } from "@/features/holidays/pages/holidays-page";
 import { AuditLogPage } from "@/features/audit/pages/audit-log-page";
+import { AdminDashboardPage } from "@/features/dashboard/pages/admin-dashboard-page";
 import { NotFoundPage } from "@/pages/not-found";
 
 export const router = createBrowserRouter([
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: "approvals", element: <ApprovalsPage /> },
       { path: "holidays", element: <HolidaysPage /> },
       { path: "audit-log", element: <AuditLogPage /> },
+      { path: "dashboard", element: <AdminDashboardPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },
