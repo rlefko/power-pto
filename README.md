@@ -3,7 +3,7 @@
 [![CI](https://github.com/rlefko/power-pto/actions/workflows/ci.yml/badge.svg)](https://github.com/rlefko/power-pto/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/rlefko/power-pto/actions/workflows/codeql.yml/badge.svg)](https://github.com/rlefko/power-pto/actions/workflows/codeql.yml)
 
-A full-stack employee time-off tracking system built for the [Warp](https://www.warp.dev/) product engineer take-home assessment. Power PTO supports flexible policies (unlimited and accrual-based), ledger-first balance tracking, approval workflows, and full audit trails, all backed by a React frontend and a FastAPI + PostgreSQL backend.
+A full-stack employee time-off tracking system built for the [Warp](https://joinwarp.com/) product engineer take-home assessment. Power PTO supports flexible policies (unlimited and accrual-based), ledger-first balance tracking, approval workflows, and full audit trails, all backed by a React frontend and a FastAPI + PostgreSQL backend.
 
 ---
 
