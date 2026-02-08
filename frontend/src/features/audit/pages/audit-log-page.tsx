@@ -12,8 +12,8 @@ import { formatDateTime } from "@/lib/utils/format";
 import { extractErrorMessage } from "@/lib/api/client";
 import { Eye } from "lucide-react";
 
-const ENTITY_TYPES = ["", "policy", "policy_version", "assignment", "request", "employee", "holiday", "adjustment"];
-const ACTIONS = ["", "create", "update", "delete", "submit", "approve", "deny", "cancel"];
+const ENTITY_TYPES = ["", "POLICY", "POLICY_VERSION", "ASSIGNMENT", "REQUEST", "EMPLOYEE", "HOLIDAY", "ADJUSTMENT"];
+const ACTIONS = ["", "CREATE", "UPDATE", "DELETE", "SUBMIT", "APPROVE", "DENY", "CANCEL"];
 
 export function AuditLogPage() {
   const [entityType, setEntityType] = useState("");
@@ -21,8 +21,8 @@ export function AuditLogPage() {
 
   const filters = useMemo(() => {
     const f: Record<string, unknown> = {};
-    if (entityType) f.entity_type = entityType;
-    if (action) f.action = action;
+    if (entityType && entityType !== "all") f.entity_type = entityType;
+    if (action && action !== "all") f.action = action;
     return f;
   }, [entityType, action]);
 
@@ -86,7 +86,7 @@ export function AuditLogPage() {
             <SelectItem value="all">All entities</SelectItem>
             {ENTITY_TYPES.filter(Boolean).map((t) => (
               <SelectItem key={t} value={t}>
-                <span className="capitalize">{t}</span>
+                <span className="capitalize">{t.toLowerCase().replace("_", " ")}</span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -99,7 +99,7 @@ export function AuditLogPage() {
             <SelectItem value="all">All actions</SelectItem>
             {ACTIONS.filter(Boolean).map((a) => (
               <SelectItem key={a} value={a}>
-                <span className="capitalize">{a}</span>
+                <span className="capitalize">{a.toLowerCase()}</span>
               </SelectItem>
             ))}
           </SelectContent>
