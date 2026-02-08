@@ -211,6 +211,204 @@ async def test_list_policies_does_not_leak_other_company(async_client: AsyncClie
 
 
 # ---------------------------------------------------------------------------
+# Update (versioning) tests
+# ---------------------------------------------------------------------------
+
+
+async def test_update_policy_creates_new_version(async_client: AsyncClient) -> None:
+    create_resp = await async_client.post(BASE_URL, json=_unlimited_payload(), headers=AUTH_HEADERS)
+    assert create_resp.status_code == 201
+    policy_id = create_resp.json()["id"]
+
+    update_payload = {
+        "version": {
+            "effective_from": "2025-07-01",
+            "settings": {
+                "type": "ACCRUAL",
+                "accrual_method": "TIME",
+                "accrual_frequency": "MONTHLY",
+                "rate_minutes_per_month": 800,
+            },
+            "change_reason": "Switched to accrual",
+        },
+    }
+    resp = await async_client.put(f"{BASE_URL}/{policy_id}", json=update_payload, headers=AUTH_HEADERS)
+    assert resp.status_code == 200
+    data = resp.json()
+    cv = data["current_version"]
+    assert cv["version"] == 2
+    assert cv["type"] == "ACCRUAL"
+    assert cv["accrual_method"] == "TIME"
+    assert cv["effective_to"] is None
+    assert cv["change_reason"] == "Switched to accrual"
+
+
+async def test_update_policy_end_dates_previous_version(async_client: AsyncClient) -> None:
+    create_resp = await async_client.post(BASE_URL, json=_unlimited_payload(), headers=AUTH_HEADERS)
+    policy_id = create_resp.json()["id"]
+
+    update_payload = {
+        "version": {
+            "effective_from": "2025-07-01",
+            "settings": {"type": "UNLIMITED"},
+        },
+    }
+    await async_client.put(f"{BASE_URL}/{policy_id}", json=update_payload, headers=AUTH_HEADERS)
+
+    # Check that v1 is now end-dated via the versions list
+    versions_resp = await async_client.get(f"{BASE_URL}/{policy_id}/versions", headers=AUTH_HEADERS)
+    versions = versions_resp.json()["items"]
+    assert len(versions) == 2
+    # Versions are ordered desc, so v2 first
+    v2 = versions[0]
+    v1 = versions[1]
+    assert v2["version"] == 2
+    assert v2["effective_to"] is None
+    assert v1["version"] == 1
+    assert v1["effective_to"] == "2025-07-01"
+
+
+async def test_update_policy_increments_version_number(async_client: AsyncClient) -> None:
+    create_resp = await async_client.post(BASE_URL, json=_unlimited_payload(), headers=AUTH_HEADERS)
+    policy_id = create_resp.json()["id"]
+
+    for i in range(3):
+        update_payload = {
+            "version": {
+                "effective_from": f"2025-0{i + 2}-01",
+                "settings": {"type": "UNLIMITED"},
+            },
+        }
+        resp = await async_client.put(f"{BASE_URL}/{policy_id}", json=update_payload, headers=AUTH_HEADERS)
+        assert resp.json()["current_version"]["version"] == i + 2
+
+
+async def test_update_policy_not_found(async_client: AsyncClient) -> None:
+    fake_id = uuid.uuid4()
+    update_payload = {
+        "version": {
+            "effective_from": "2025-07-01",
+            "settings": {"type": "UNLIMITED"},
+        },
+    }
+    resp = await async_client.put(f"{BASE_URL}/{fake_id}", json=update_payload, headers=AUTH_HEADERS)
+    assert resp.status_code == 404
+
+
+async def test_update_policy_effective_from_before_current(async_client: AsyncClient) -> None:
+    create_resp = await async_client.post(BASE_URL, json=_time_accrual_payload(), headers=AUTH_HEADERS)
+    policy_id = create_resp.json()["id"]
+
+    update_payload = {
+        "version": {
+            "effective_from": "2024-06-01",
+            "settings": {"type": "UNLIMITED"},
+        },
+    }
+    resp = await async_client.put(f"{BASE_URL}/{policy_id}", json=update_payload, headers=AUTH_HEADERS)
+    assert resp.status_code == 400
+
+
+async def test_update_policy_type_change(async_client: AsyncClient) -> None:
+    """Allow changing policy type (e.g., unlimited -> accrual)."""
+    create_resp = await async_client.post(BASE_URL, json=_unlimited_payload(), headers=AUTH_HEADERS)
+    policy_id = create_resp.json()["id"]
+    assert create_resp.json()["current_version"]["type"] == "UNLIMITED"
+
+    update_payload = {
+        "version": {
+            "effective_from": "2025-07-01",
+            "settings": {
+                "type": "ACCRUAL",
+                "accrual_method": "HOURS_WORKED",
+                "accrual_ratio": {"accrue_minutes": 60, "per_worked_minutes": 1440},
+            },
+        },
+    }
+    resp = await async_client.put(f"{BASE_URL}/{policy_id}", json=update_payload, headers=AUTH_HEADERS)
+    assert resp.status_code == 200
+    assert resp.json()["current_version"]["type"] == "ACCRUAL"
+    assert resp.json()["current_version"]["accrual_method"] == "HOURS_WORKED"
+
+
+async def test_non_admin_cannot_update(async_client: AsyncClient) -> None:
+    create_resp = await async_client.post(BASE_URL, json=_unlimited_payload(), headers=AUTH_HEADERS)
+    policy_id = create_resp.json()["id"]
+
+    employee_headers = {
+        "X-Company-Id": str(COMPANY_ID),
+        "X-User-Id": str(USER_ID),
+        "X-Role": "employee",
+    }
+    update_payload = {
+        "version": {
+            "effective_from": "2025-07-01",
+            "settings": {"type": "UNLIMITED"},
+        },
+    }
+    resp = await async_client.put(f"{BASE_URL}/{policy_id}", json=update_payload, headers=employee_headers)
+    assert resp.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# List versions tests
+# ---------------------------------------------------------------------------
+
+
+async def test_list_versions_returns_all(async_client: AsyncClient) -> None:
+    create_resp = await async_client.post(BASE_URL, json=_unlimited_payload(), headers=AUTH_HEADERS)
+    policy_id = create_resp.json()["id"]
+
+    for i in range(2):
+        update_payload = {
+            "version": {
+                "effective_from": f"2025-0{i + 2}-01",
+                "settings": {"type": "UNLIMITED"},
+            },
+        }
+        await async_client.put(f"{BASE_URL}/{policy_id}", json=update_payload, headers=AUTH_HEADERS)
+
+    resp = await async_client.get(f"{BASE_URL}/{policy_id}/versions", headers=AUTH_HEADERS)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 3
+    assert len(data["items"]) == 3
+    # Ordered desc
+    assert data["items"][0]["version"] == 3
+    assert data["items"][1]["version"] == 2
+    assert data["items"][2]["version"] == 1
+
+
+async def test_list_versions_pagination(async_client: AsyncClient) -> None:
+    create_resp = await async_client.post(BASE_URL, json=_unlimited_payload(), headers=AUTH_HEADERS)
+    policy_id = create_resp.json()["id"]
+
+    for i in range(3):
+        update_payload = {
+            "version": {
+                "effective_from": f"2025-0{i + 2}-01",
+                "settings": {"type": "UNLIMITED"},
+            },
+        }
+        await async_client.put(f"{BASE_URL}/{policy_id}", json=update_payload, headers=AUTH_HEADERS)
+
+    resp = await async_client.get(f"{BASE_URL}/{policy_id}/versions?offset=0&limit=2", headers=AUTH_HEADERS)
+    data = resp.json()
+    assert data["total"] == 4
+    assert len(data["items"]) == 2
+
+    resp2 = await async_client.get(f"{BASE_URL}/{policy_id}/versions?offset=2&limit=2", headers=AUTH_HEADERS)
+    data2 = resp2.json()
+    assert len(data2["items"]) == 2
+
+
+async def test_list_versions_policy_not_found(async_client: AsyncClient) -> None:
+    fake_id = uuid.uuid4()
+    resp = await async_client.get(f"{BASE_URL}/{fake_id}/versions", headers=AUTH_HEADERS)
+    assert resp.status_code == 404
+
+
+# ---------------------------------------------------------------------------
 # Auth tests
 # ---------------------------------------------------------------------------
 

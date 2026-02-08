@@ -11,6 +11,8 @@ from app.schemas.policy import (
     CreatePolicyRequest,
     PolicyListResponse,
     PolicyResponse,
+    PolicyVersionListResponse,
+    UpdatePolicyRequest,
 )
 from app.services import policy as policy_service
 
@@ -50,3 +52,26 @@ async def get_policy(
 ) -> PolicyResponse:
     """Get a single policy with its current version."""
     return await policy_service.get_policy(session, auth.company_id, policy_id)
+
+
+@router.put("/{policy_id}", response_model=PolicyResponse)
+async def update_policy(
+    policy_id: uuid.UUID,
+    payload: UpdatePolicyRequest,
+    session: SessionDep,
+    auth: AdminDep,
+) -> PolicyResponse:
+    """Update a policy by creating a new version."""
+    return await policy_service.update_policy(session, auth, policy_id, payload)
+
+
+@router.get("/{policy_id}/versions", response_model=PolicyVersionListResponse)
+async def list_policy_versions(
+    policy_id: uuid.UUID,
+    session: SessionDep,
+    auth: AuthDep,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=100),
+) -> PolicyVersionListResponse:
+    """List all versions of a policy."""
+    return await policy_service.list_policy_versions(session, auth.company_id, policy_id, offset, limit)

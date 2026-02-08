@@ -15,6 +15,7 @@ from app.schemas.policy import (
     PolicyListResponse,
     PolicyResponse,
     PolicySettings,
+    PolicyVersionListResponse,
     PolicyVersionResponse,
 )
 
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from app.schemas.auth import AuthContext
-    from app.schemas.policy import CreatePolicyRequest
+    from app.schemas.policy import CreatePolicyRequest, UpdatePolicyRequest
 
 _settings_adapter: TypeAdapter[PolicySettings] = TypeAdapter(PolicySettings)
 
@@ -154,6 +155,100 @@ async def list_policies(
         items.append(_build_policy_response(policy, current_version))
 
     return PolicyListResponse(items=items, total=total)
+
+
+async def update_policy(
+    session: AsyncSession,
+    auth: AuthContext,
+    policy_id: uuid.UUID,
+    payload: UpdatePolicyRequest,
+) -> PolicyResponse:
+    """Update a policy by creating a new version and end-dating the current one."""
+    result = await session.execute(
+        select(TimeOffPolicy).where(
+            col(TimeOffPolicy.id) == policy_id,
+            col(TimeOffPolicy.company_id) == auth.company_id,
+        )
+    )
+    policy = result.scalar_one_or_none()
+    if policy is None:
+        raise AppError("Policy not found", status_code=404)
+
+    current_version = await _get_current_version(session, policy_id)
+    if current_version is None:
+        raise AppError("Policy has no current version", status_code=404)
+
+    if payload.version.effective_from < current_version.effective_from:
+        raise AppError(
+            "New version effective_from must not precede current version's effective_from",
+            status_code=400,
+        )
+
+    # End-date current version
+    current_version.effective_to = payload.version.effective_from
+
+    # Derive type and accrual_method from new settings
+    settings = payload.version.settings
+    policy_type = settings.type
+    accrual_method = getattr(settings, "accrual_method", None)
+
+    # Create new version
+    new_version = TimeOffPolicyVersion(
+        policy_id=policy.id,
+        version=current_version.version + 1,
+        effective_from=payload.version.effective_from,
+        type=policy_type,
+        accrual_method=accrual_method,
+        settings_json=settings.model_dump(mode="json"),
+        created_by=auth.user_id,
+        change_reason=payload.version.change_reason,
+    )
+    session.add(new_version)
+    await session.flush()
+
+    await session.commit()
+    await session.refresh(policy)
+    await session.refresh(new_version)
+
+    return _build_policy_response(policy, new_version)
+
+
+async def list_policy_versions(
+    session: AsyncSession,
+    company_id: uuid.UUID,
+    policy_id: uuid.UUID,
+    offset: int = 0,
+    limit: int = 50,
+) -> PolicyVersionListResponse:
+    """List all versions of a policy ordered by version number descending."""
+    # Verify policy exists and belongs to company
+    policy_result = await session.execute(
+        select(TimeOffPolicy).where(
+            col(TimeOffPolicy.id) == policy_id,
+            col(TimeOffPolicy.company_id) == company_id,
+        )
+    )
+    if policy_result.scalar_one_or_none() is None:
+        raise AppError("Policy not found", status_code=404)
+
+    count_result = await session.execute(
+        select(func.count()).select_from(TimeOffPolicyVersion).where(col(TimeOffPolicyVersion.policy_id) == policy_id)
+    )
+    total = count_result.scalar_one()
+
+    versions_result = await session.execute(
+        select(TimeOffPolicyVersion)
+        .where(col(TimeOffPolicyVersion.policy_id) == policy_id)
+        .order_by(col(TimeOffPolicyVersion.version).desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    versions = list(versions_result.scalars().all())
+
+    return PolicyVersionListResponse(
+        items=[_build_version_response(v) for v in versions],
+        total=total,
+    )
 
 
 async def _get_current_version(
