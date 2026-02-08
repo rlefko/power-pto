@@ -6,6 +6,7 @@ from app.api.balances import adjustment_router, employee_balance_router, employe
 from app.api.employees import employees_router
 from app.api.holidays import holidays_router
 from app.api.policies import router as policies_router
+from app.api.reports import reports_router
 from app.api.requests import requests_router
 
 api_router = APIRouter()
@@ -21,3 +22,4 @@ api_router.include_router(accrual_trigger_router)
 api_router.include_router(payroll_webhook_router)
 api_router.include_router(holidays_router)
 api_router.include_router(employees_router)
+api_router.include_router(reports_router)
